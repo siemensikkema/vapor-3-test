@@ -1,38 +1,32 @@
-import FluentSQLite
+import FluentMySQL
 import Vapor
 
-/// Called before your application initializes.
-///
-/// [Learn More →](https://docs.vapor.codes/3.0/getting-started/structure/#configureswift)
 public func configure(
     _ config: inout Config,
     _ env: inout Environment,
     _ services: inout Services
 ) throws {
-    // Register providers first
-    try services.register(FluentSQLiteProvider())
+    // Register providers
+    try services.register(FluentMySQLProvider())
 
-    // Register routes to the router
+    // Register router and routes
     let router = EngineRouter.default()
     try routes(router)
     services.register(router, as: Router.self)
 
-    // Register middleware
-    var middlewares = MiddlewareConfig() // Create _empty_ middleware config
-    // middlewares.use(FileMiddleware.self) // Serves files from `Public/` directory
-    middlewares.use(DateMiddleware.self) // Adds `Date` header to responses
-    middlewares.use(ErrorMiddleware.self) // Catches errors and converts to HTTP response
-    services.register(middlewares)
-
-    // Configure a SQLite database
+    // Register MySQL database
+    let database = MySQLDatabase(
+        hostname: "localhost",
+        user: "root",
+        password: "{ypru3oaKJWsvjadxcxwJU8XZVuWzatWTQrk3DaKP2atQ3npn?",
+        database: "vapor-3-test"
+    )
     var databases = DatabaseConfig()
-    try databases.add(database: SQLiteDatabase(storage: .memory), as: .sqlite)
-    services.register(databases)
+    databases.add(database: database, as: .mysql)
+    services.register(databases, as: DatabaseConfig.self)
 
-    // Configure migrations
+    // Register migrations
     var migrations = MigrationConfig()
-    migrations.add(model: Todo.self, database: .sqlite)
+    migrations.add(model: Post.self, database: .mysql)
     services.register(migrations)
-
-    // Configure the rest of your application here
 }
