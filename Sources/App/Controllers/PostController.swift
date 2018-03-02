@@ -1,54 +1,15 @@
 import Vapor
 
-extension Future where Expectation: Content {
-    func makeResponse(on req: Request) -> Future<Response> {
-        return flatMap(to: Response.self) { exp in
-            try exp.encode(for: req)
-        }
-    }
-}
-
-//extension Content {
-//    func patch(
-//        keyPaths: [PartialKeyPath<Self>],
-//        using: Request
-//    ) {
-//
-//    }
-//}
-//
-//extension Post: Patchable {
-//    static var patchableKeys: [BasicKey] {
-//
-//
-//
-//    }
-//}
-import Fluent
-
-struct APIResource<T> where T: Model, T: Content {
-    let path: String
-    let all: ((Request) throws -> Future<[T]>)?
-
-    init(
-        path: String = T.entity,
-        all: ((Request) throws -> Future<[T]>)? = nil
-    ) {
-        self.path = path
-        self.all = all
-    }
-
-    func register(router: Router) {
-        let group = router.grouped(path.makePathComponent())
-        if let all = all {
-            group.get(use: all)
-        }
-    }
-}
-
-extension PostController {
+extension PostController: APIResourceRepresentable {
     func makeAPIResource() -> APIResource<Post> {
-        return APIResource(all: all)
+        return APIResource(
+            all: all,
+            single: single,
+            create: create,
+            replace: replace,
+            update: update,
+            delete: delete
+        )
     }
 }
 
@@ -61,18 +22,11 @@ final class PostController {
         return try req.parameter(Post.self)
     }
 
-    func create(req: Request) throws -> Future<Response> {
+    func create(req: Request) throws -> Future<Post> {
         return try req
             .content
             .decode(Post.self)
             .save(on: req)
-            .flatMap(to: Response.self) { post in
-                let id = try post.requireID()
-                return try post.encode(for: req).do {
-                    $0.http.status = .created
-                    $0.http.headers[.location] = "/posts/\(id)"
-                }
-        }
     }
 
     func replace(req: Request) throws -> Future<Post> {
@@ -103,7 +57,7 @@ final class PostController {
         }
     }
 
-    func delete(req: Request) throws -> Future<HTTPStatus> {
-        return try single(req: req).delete(on: req).transform(to: .noContent)
+    func delete(req: Request) throws -> Future<Post> {
+        return try single(req: req).delete(on: req)
     }
 }
