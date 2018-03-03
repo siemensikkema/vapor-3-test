@@ -1,20 +1,20 @@
 import Fluent
 import Vapor
 
-typealias APIResourceModel = Model & Content & Parameter
+typealias RESTResourceModel = Model & Content & Parameter
 
-protocol APIResourceRepresentable {
-    associatedtype T: APIResourceModel
-    func makeAPIResource() -> APIResource<T>
+protocol RESTResourceRepresentable {
+    associatedtype T: RESTResourceModel
+    func makeAPIResource() -> RESTResource<T>
 }
 
-extension APIResourceRepresentable {
+extension RESTResourceRepresentable {
     func register(router: Router) {
         makeAPIResource().register(router: router)
     }
 }
 
-struct APIResource<T> where T: APIResourceModel {
+struct RESTResource<T> where T: RESTResourceModel {
     let path: String
 
     typealias All = (Request) throws -> Future<[T]>

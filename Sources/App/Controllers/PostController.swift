@@ -1,8 +1,8 @@
 import Vapor
 
-extension PostController: APIResourceRepresentable {
-    func makeAPIResource() -> APIResource<Post> {
-        return APIResource(
+extension PostController: RESTResourceRepresentable {
+    func makeAPIResource() -> RESTResource<Post> {
+        return RESTResource(
             all: all,
             single: single,
             create: create,
