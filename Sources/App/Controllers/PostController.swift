@@ -39,6 +39,7 @@ final class PostController {
             old.title = new.title
             return old
         }
+        .save(on: req)
     }
 
     func update(req: Request) throws -> Future<Post> {
@@ -55,6 +56,7 @@ final class PostController {
             }
             return old
         }
+        .save(on: req)
     }
 
     func delete(req: Request) throws -> Future<Post> {
